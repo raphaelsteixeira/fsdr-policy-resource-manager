@@ -1,6 +1,6 @@
 # OCI Full Stack DR resource-principal policy stack
 
-[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https%3A%2F%2Fraw.githubusercontent.com%2Fraphaelsteixeira%2Ffsdr-policy-resource-manager%2Fmain%2Foci-fsdr-resource-principal-stack.zip)
+[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/raphaelsteixeira/fsdr-policy-resource-manager/archive/refs/heads/main.zip)
 
 This Terraform configuration is designed for OCI Resource Manager. It creates:
 
