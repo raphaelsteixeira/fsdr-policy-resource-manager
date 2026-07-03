@@ -1,0 +1,921 @@
+schemaVersion: 1.1.0
+packageVersion: "1.3.1"
+locale: en
+title: "OCI Full Stack DR resource-principal policies"
+description: "Create the dynamic group and least-scope IAM policies required by the selected OCI Full Stack Disaster Recovery member types."
+stackDescription: "OCI Full Stack DR dynamic group and selectable resource-principal policies"
+informationalText: "The generated IAM policy is attached at tenancy root. Product permissions are limited to the selected compartments unless you explicitly choose tenancy-wide scope."
+allowViewState: false
+
+variableGroups:
+  - title: "Stack and identity domain"
+    variables:
+      - tenancy_ocid
+      - region
+      - identity_domain_id
+      - dynamic_group_name
+      - dynamic_group_description
+      - reuse_existing_dynamic_group
+      - existing_dynamic_group_ocid
+      - policy_name
+      - policy_description
+      - policy_identifier_style
+
+  - title: "DR Protection Groups (required)"
+    variables:
+      - dr_protection_groups_in_tenancy
+      - dr_protection_group_compartment_id_1
+      - dr_protection_group_compartment_id_2
+      - dr_protection_group_compartment_id_3
+
+  - title: "Products and features to protect"
+    variables:
+      - enable_object_storage
+      - enable_networking
+      - enable_vault
+      - enable_compute
+      - enable_volume_groups
+      - enable_file_systems
+      - enable_database
+      - enable_autonomous_database
+      - enable_autonomous_container_database
+      - enable_mysql
+      - enable_load_balancers
+      - enable_network_load_balancers
+      - enable_oke
+      - enable_user_defined_steps
+      - enable_functions
+      - enable_integration
+
+  - title: "Object Storage and DR execution logs"
+    variables:
+      - object_storage_in_tenancy
+      - object_storage_compartment_id_1
+      - object_storage_compartment_id_2
+      - object_storage_compartment_id_3
+    visible: ${enable_object_storage}
+
+  - title: "Networking"
+    variables:
+      - networking_in_tenancy
+      - network_compartment_id_1
+      - network_compartment_id_2
+      - network_compartment_id_3
+    visible: ${enable_networking}
+
+  - title: "Vault"
+    variables:
+      - vault_in_tenancy
+      - vault_compartment_id_1
+      - vault_compartment_id_2
+      - vault_compartment_id_3
+    visible: ${enable_vault}
+
+  - title: "Compute instances"
+    variables:
+      - compute_in_tenancy
+      - compute_compartment_id_1
+      - compute_compartment_id_2
+      - compute_compartment_id_3
+    visible: ${enable_compute}
+
+  - title: "Block Volume groups"
+    variables:
+      - volume_groups_in_tenancy
+      - volume_group_compartment_id_1
+      - volume_group_compartment_id_2
+      - volume_group_compartment_id_3
+    visible: ${enable_volume_groups}
+
+  - title: "File Storage"
+    variables:
+      - file_systems_in_tenancy
+      - file_system_compartment_id_1
+      - file_system_compartment_id_2
+      - file_system_compartment_id_3
+    visible: ${enable_file_systems}
+
+  - title: "Oracle Database"
+    variables:
+      - database_in_tenancy
+      - database_compartment_id_1
+      - database_compartment_id_2
+      - database_compartment_id_3
+    visible: ${enable_database}
+
+  - title: "Autonomous Database"
+    variables:
+      - autonomous_database_in_tenancy
+      - autonomous_database_compartment_id_1
+      - autonomous_database_compartment_id_2
+      - autonomous_database_compartment_id_3
+    visible: ${enable_autonomous_database}
+
+  - title: "Autonomous Container Database"
+    variables:
+      - autonomous_container_database_in_tenancy
+      - autonomous_container_database_compartment_id_1
+      - autonomous_container_database_compartment_id_2
+      - autonomous_container_database_compartment_id_3
+    visible: ${enable_autonomous_container_database}
+
+  - title: "MySQL HeatWave"
+    variables:
+      - mysql_in_tenancy
+      - mysql_compartment_id_1
+      - mysql_compartment_id_2
+      - mysql_compartment_id_3
+    visible: ${enable_mysql}
+
+  - title: "Load Balancers"
+    variables:
+      - load_balancers_in_tenancy
+      - load_balancer_compartment_id_1
+      - load_balancer_compartment_id_2
+      - load_balancer_compartment_id_3
+    visible: ${enable_load_balancers}
+
+  - title: "Network Load Balancers"
+    variables:
+      - network_load_balancers_in_tenancy
+      - network_load_balancer_compartment_id_1
+      - network_load_balancer_compartment_id_2
+      - network_load_balancer_compartment_id_3
+    visible: ${enable_network_load_balancers}
+
+  - title: "Oracle Kubernetes Engine"
+    variables:
+      - oke_in_tenancy
+      - oke_compartment_id_1
+      - oke_compartment_id_2
+      - oke_compartment_id_3
+      - enable_oke_virtual_nodes
+      - oke_cluster_ocids
+    visible: ${enable_oke}
+
+  - title: "User-defined DR Plan steps"
+    variables:
+      - user_defined_steps_in_tenancy
+      - user_defined_step_compartment_id_1
+      - user_defined_step_compartment_id_2
+      - user_defined_step_compartment_id_3
+    visible: ${enable_user_defined_steps}
+
+  - title: "OCI Functions DR Plan steps"
+    variables:
+      - functions_in_tenancy
+      - function_compartment_id_1
+      - function_compartment_id_2
+      - function_compartment_id_3
+    visible: ${enable_functions}
+
+  - title: "Oracle Integration"
+    variables:
+      - integration_in_tenancy
+      - integration_compartment_id_1
+      - integration_compartment_id_2
+      - integration_compartment_id_3
+    visible: ${enable_integration}
+
+variables:
+  tenancy_ocid:
+    type: string
+    title: "Tenancy OCID"
+    description: "Automatically populated by OCI Resource Manager."
+    required: true
+    visible: false
+
+  region:
+    type: oci:identity:region:name
+    title: "Region"
+    required: true
+    visible: false
+
+  identity_domain_id:
+    type: oci:identity:domains:id
+    title: "Identity domain"
+    description: "The dynamic group is created in this identity domain."
+    required: true
+    dependsOn:
+      compartmentId: ${tenancy_ocid}
+
+  dynamic_group_name:
+    type: string
+    title: "Dynamic group name"
+    required: true
+    default: "fsdr-resource-principals"
+    pattern: "^[A-Za-z0-9._-]{1,100}$"
+
+  dynamic_group_description:
+    type: string
+    title: "Dynamic group description"
+    required: true
+    default: "Resource principals used by OCI Full Stack Disaster Recovery"
+
+  reuse_existing_dynamic_group:
+    type: boolean
+    title: "Reuse an existing dynamic group"
+    description: "Enable this after a prior stack already created the compatible dynamic group, or when the group is managed separately."
+    required: true
+    default: false
+
+  existing_dynamic_group_ocid:
+    type: string
+    title: "Existing dynamic group OCID"
+    description: "Copy the OCID from Identity & Security > Domains > selected domain > Dynamic groups. Its matching rule must cover the resources selected in this stack."
+    required: true
+    pattern: "^ocid1\\.dynamicresourcegroup\\..+"
+    visible: ${reuse_existing_dynamic_group}
+
+  policy_name:
+    type: string
+    title: "IAM policy name"
+    required: true
+    default: "fsdr-resource-principal-policy"
+    pattern: "^[A-Za-z0-9._-]{1,90}$"
+
+  policy_description:
+    type: string
+    title: "IAM policy description"
+    required: true
+    default: "Permissions used by OCI Full Stack Disaster Recovery resource principals"
+
+  policy_identifier_style:
+    type: enum
+    title: "Policy identifier style"
+    description: "Names generates readable domain/group subjects and full compartment paths. OCIDs are immutable and remain valid after renames."
+    enum:
+      - NAMES
+      - OCIDS
+    default: NAMES
+    required: true
+
+  dr_protection_groups_in_tenancy:
+    type: boolean
+    title: "All DR Protection Groups in the tenancy"
+    description: "Matches every DR Protection Group and grants disaster-recovery-family at tenancy scope."
+    required: true
+    default: false
+
+  dr_protection_group_compartment_ids:
+    type: array
+    title: "DR Protection Group compartments"
+    description: "Add every compartment that contains a DR Protection Group used by this deployment."
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "DR Protection Group compartment"
+      required: true
+    visible: false
+
+  enable_object_storage:
+    type: boolean
+    title: "Object Storage / execution logs"
+    description: "Required for DR execution logs and for protected buckets, OKE, or user-defined steps that use Object Storage."
+    required: true
+    default: true
+
+  object_storage_in_tenancy:
+    type: boolean
+    title: "Grant Object Storage in the tenancy"
+    required: true
+    default: false
+
+  object_storage_compartment_ids:
+    type: array
+    title: "Object Storage compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "Object Storage compartment"
+      required: true
+    visible: false
+
+  enable_networking:
+    type: boolean
+    title: "Networking"
+    description: "Select for Compute, Autonomous Database, load balancers, File Storage, or OKE when DR manages networking."
+    required: true
+    default: false
+
+  networking_in_tenancy:
+    type: boolean
+    title: "Grant networking in the tenancy"
+    required: true
+    default: false
+
+  network_compartment_ids:
+    type: array
+    title: "Network compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "Network compartment"
+      required: true
+    visible: false
+
+  enable_vault:
+    type: boolean
+    title: "Vault and secrets"
+    description: "Select when protected resources use Vault keys or DR must read database credentials."
+    required: true
+    default: false
+
+  vault_in_tenancy:
+    type: boolean
+    title: "Grant Vault read access in the tenancy"
+    required: true
+    default: false
+
+  vault_compartment_ids:
+    type: array
+    title: "Vault compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "Vault compartment"
+      required: true
+    visible: false
+
+  enable_compute:
+    type: boolean
+    title: "Compute instances"
+    required: true
+    default: false
+
+  compute_in_tenancy:
+    type: boolean
+    title: "Grant Compute permissions in the tenancy"
+    description: "The selected Compute compartments are still required for safe dynamic-group matching."
+    required: true
+    default: false
+
+  compute_compartment_ids:
+    type: array
+    title: "Protected Compute compartments"
+    description: "Used both for dynamic-group instance matching and, unless tenancy scope is selected, IAM policy scope."
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "Compute compartment"
+      required: true
+    visible: false
+
+  enable_volume_groups:
+    type: boolean
+    title: "Block Volume groups"
+    required: true
+    default: false
+
+  volume_groups_in_tenancy:
+    type: boolean
+    title: "Grant volume-family in the tenancy"
+    required: true
+    default: false
+
+  volume_group_compartment_ids:
+    type: array
+    title: "Volume group compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "Volume group compartment"
+      required: true
+    visible: false
+
+  enable_file_systems:
+    type: boolean
+    title: "File Storage file systems"
+    required: true
+    default: false
+
+  file_systems_in_tenancy:
+    type: boolean
+    title: "Grant file-family in the tenancy"
+    required: true
+    default: false
+
+  file_system_compartment_ids:
+    type: array
+    title: "File system compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "File system compartment"
+      required: true
+    visible: false
+
+  enable_database:
+    type: boolean
+    title: "Oracle Database / Exadata"
+    required: true
+    default: false
+
+  database_in_tenancy:
+    type: boolean
+    title: "Grant database-family in the tenancy"
+    required: true
+    default: false
+
+  database_compartment_ids:
+    type: array
+    title: "Database compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "Database compartment"
+      required: true
+    visible: false
+
+  enable_autonomous_database:
+    type: boolean
+    title: "Autonomous Database"
+    required: true
+    default: false
+
+  autonomous_database_in_tenancy:
+    type: boolean
+    title: "Grant Autonomous Database in the tenancy"
+    required: true
+    default: false
+
+  autonomous_database_compartment_ids:
+    type: array
+    title: "Autonomous Database compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "Autonomous Database compartment"
+      required: true
+    visible: false
+
+  enable_autonomous_container_database:
+    type: boolean
+    title: "Autonomous Container Database"
+    required: true
+    default: false
+
+  autonomous_container_database_in_tenancy:
+    type: boolean
+    title: "Grant Autonomous Container Database in the tenancy"
+    required: true
+    default: false
+
+  autonomous_container_database_compartment_ids:
+    type: array
+    title: "Autonomous Container Database compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "Autonomous Container Database compartment"
+      required: true
+    visible: false
+
+  enable_mysql:
+    type: boolean
+    title: "MySQL HeatWave DB Systems"
+    required: true
+    default: false
+
+  mysql_in_tenancy:
+    type: boolean
+    title: "Grant MySQL and match container instances in the tenancy"
+    required: true
+    default: false
+
+  mysql_compartment_ids:
+    type: array
+    title: "MySQL compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "MySQL compartment"
+      required: true
+    visible: false
+
+  enable_load_balancers:
+    type: boolean
+    title: "Load Balancers"
+    required: true
+    default: false
+
+  load_balancers_in_tenancy:
+    type: boolean
+    title: "Grant Load Balancer permissions in the tenancy"
+    required: true
+    default: false
+
+  load_balancer_compartment_ids:
+    type: array
+    title: "Load Balancer compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "Load Balancer compartment"
+      required: true
+    visible: false
+
+  enable_network_load_balancers:
+    type: boolean
+    title: "Network Load Balancers"
+    required: true
+    default: false
+
+  network_load_balancers_in_tenancy:
+    type: boolean
+    title: "Grant Network Load Balancer permissions in the tenancy"
+    required: true
+    default: false
+
+  network_load_balancer_compartment_ids:
+    type: array
+    title: "Network Load Balancer compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "Network Load Balancer compartment"
+      required: true
+    visible: false
+
+  enable_oke:
+    type: boolean
+    title: "Oracle Kubernetes Engine (OKE)"
+    required: true
+    default: false
+
+  oke_in_tenancy:
+    type: boolean
+    title: "Grant OKE and match container instances in the tenancy"
+    required: true
+    default: false
+
+  oke_compartment_ids:
+    type: array
+    title: "OKE compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "OKE compartment"
+      required: true
+    visible: false
+
+  enable_oke_virtual_nodes:
+    type: boolean
+    title: "OKE uses virtual node pools"
+    description: "Adds BRIE creator and reader workload-principal policies for each cluster OCID."
+    required: true
+    default: false
+
+  oke_cluster_ocids:
+    type: array
+    title: "OKE cluster OCIDs"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: string
+      title: "OKE cluster OCID"
+      required: true
+      pattern: "^ocid1\\.cluster\\..+$"
+    visible: ${enable_oke_virtual_nodes}
+
+  enable_user_defined_steps:
+    type: boolean
+    title: "User-defined script steps"
+    required: true
+    default: false
+
+  user_defined_steps_in_tenancy:
+    type: boolean
+    title: "Grant Cloud Agent command permissions in the tenancy"
+    required: true
+    default: false
+
+  user_defined_step_compartment_ids:
+    type: array
+    title: "User-defined step instance compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "Instance compartment"
+      required: true
+    visible: false
+
+  enable_functions:
+    type: boolean
+    title: "OCI Functions steps"
+    required: true
+    default: false
+
+  functions_in_tenancy:
+    type: boolean
+    title: "Grant Functions permissions in the tenancy"
+    required: true
+    default: false
+
+  function_compartment_ids:
+    type: array
+    title: "Functions compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "Functions compartment"
+      required: true
+    visible: false
+
+  enable_integration:
+    type: boolean
+    title: "Oracle Integration instances"
+    required: true
+    default: false
+
+  integration_in_tenancy:
+    type: boolean
+    title: "Grant Oracle Integration permissions in the tenancy"
+    required: true
+    default: false
+
+  integration_compartment_ids:
+    type: array
+    title: "Oracle Integration compartments"
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: oci:identity:compartment:id
+      title: "Oracle Integration compartment"
+      required: true
+    visible: false
+
+  # Top-level dynamic selectors are required for Resource Manager to query OCI
+  # compartments. The hidden array variables above remain CLI compatibility
+  # inputs and are merged with these selections by Terraform.
+  dr_protection_group_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "DR Protection Group compartment 1"
+    required: false
+  dr_protection_group_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "DR Protection Group compartment 2 (optional)"
+    required: false
+  dr_protection_group_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "DR Protection Group compartment 3 (optional)"
+    required: false
+
+  object_storage_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "Object Storage compartment 1"
+    required: false
+  object_storage_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "Object Storage compartment 2 (optional)"
+    required: false
+  object_storage_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "Object Storage compartment 3 (optional)"
+    required: false
+
+  network_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "Network compartment 1"
+    required: false
+  network_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "Network compartment 2 (optional)"
+    required: false
+  network_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "Network compartment 3 (optional)"
+    required: false
+
+  vault_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "Vault compartment 1"
+    required: false
+  vault_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "Vault compartment 2 (optional)"
+    required: false
+  vault_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "Vault compartment 3 (optional)"
+    required: false
+
+  compute_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "Compute compartment 1"
+    required: false
+  compute_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "Compute compartment 2 (optional)"
+    required: false
+  compute_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "Compute compartment 3 (optional)"
+    required: false
+
+  volume_group_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "Volume group compartment 1"
+    required: false
+  volume_group_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "Volume group compartment 2 (optional)"
+    required: false
+  volume_group_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "Volume group compartment 3 (optional)"
+    required: false
+
+  file_system_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "File system compartment 1"
+    required: false
+  file_system_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "File system compartment 2 (optional)"
+    required: false
+  file_system_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "File system compartment 3 (optional)"
+    required: false
+
+  database_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "Database compartment 1"
+    required: false
+  database_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "Database compartment 2 (optional)"
+    required: false
+  database_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "Database compartment 3 (optional)"
+    required: false
+
+  autonomous_database_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "Autonomous Database compartment 1"
+    required: false
+  autonomous_database_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "Autonomous Database compartment 2 (optional)"
+    required: false
+  autonomous_database_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "Autonomous Database compartment 3 (optional)"
+    required: false
+
+  autonomous_container_database_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "Autonomous Container Database compartment 1"
+    required: false
+  autonomous_container_database_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "Autonomous Container Database compartment 2 (optional)"
+    required: false
+  autonomous_container_database_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "Autonomous Container Database compartment 3 (optional)"
+    required: false
+
+  mysql_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "MySQL compartment 1"
+    required: false
+  mysql_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "MySQL compartment 2 (optional)"
+    required: false
+  mysql_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "MySQL compartment 3 (optional)"
+    required: false
+
+  load_balancer_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "Load Balancer compartment 1"
+    required: false
+  load_balancer_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "Load Balancer compartment 2 (optional)"
+    required: false
+  load_balancer_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "Load Balancer compartment 3 (optional)"
+    required: false
+
+  network_load_balancer_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "Network Load Balancer compartment 1"
+    required: false
+  network_load_balancer_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "Network Load Balancer compartment 2 (optional)"
+    required: false
+  network_load_balancer_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "Network Load Balancer compartment 3 (optional)"
+    required: false
+
+  oke_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "OKE compartment 1"
+    required: false
+  oke_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "OKE compartment 2 (optional)"
+    required: false
+  oke_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "OKE compartment 3 (optional)"
+    required: false
+
+  user_defined_step_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "User-defined step compartment 1"
+    required: false
+  user_defined_step_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "User-defined step compartment 2 (optional)"
+    required: false
+  user_defined_step_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "User-defined step compartment 3 (optional)"
+    required: false
+
+  function_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "Functions compartment 1"
+    required: false
+  function_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "Functions compartment 2 (optional)"
+    required: false
+  function_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "Functions compartment 3 (optional)"
+    required: false
+
+  integration_compartment_id_1:
+    type: oci:identity:compartment:id
+    title: "Oracle Integration compartment 1"
+    required: false
+  integration_compartment_id_2:
+    type: oci:identity:compartment:id
+    title: "Oracle Integration compartment 2 (optional)"
+    required: false
+  integration_compartment_id_3:
+    type: oci:identity:compartment:id
+    title: "Oracle Integration compartment 3 (optional)"
+    required: false
+
+outputs:
+  dynamic_group_ocid:
+    type: copyableString
+    title: "Dynamic group OCID"
+    visible: true
+
+  dynamic_group_matching_rule:
+    type: copyableString
+    title: "Generated dynamic-group matching rule"
+    visible: true
+
+  dynamic_group_reused:
+    type: string
+    title: "Existing dynamic group reused"
+    visible: true
+
+  policy_ocids:
+    type: copyableString
+    title: "IAM policy OCIDs"
+    visible: true
+
+  policy_statements:
+    type: copyableString
+    title: "Generated IAM policy statements"
+    visible: true
+
+outputGroups:
+  - title: "Full Stack DR IAM resources"
+    outputs:
+      - dynamic_group_ocid
+      - dynamic_group_reused
+      - policy_ocids
+      - dynamic_group_matching_rule
+      - policy_statements
