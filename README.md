@@ -17,7 +17,7 @@ If a prior stack already created the dynamic group, select **Reuse an existing d
 3. For each enabled product, select up to three compartments from the OCI-populated dropdowns, or explicitly select the tenancy-wide option. The OCIDs are passed to Terraform automatically.
 4. Run **Plan** and review the `policy_statements` and `dynamic_group_matching_rule` outputs before applying.
 
-For a manual deployment, upload [`oci-fsdr-resource-principal-stack.zip`](./oci-fsdr-resource-principal-stack.zip) when creating an OCI Resource Manager stack.
+For a manual deployment, select **Code** and then **Download ZIP** in GitHub, or download the [current `main` branch archive](https://github.com/raphaelsteixeira/fsdr-policy-resource-manager/archive/refs/heads/main.zip), and upload that generated archive when creating an OCI Resource Manager stack.
 
 The IAM policies are always created in the root compartment because the Oracle reference requires tenancy-level statements (`read all-resources`, `use tag-namespaces`, and, for Compute, `use instance-images`) and because one deployment may target compartments in different branches of the compartment hierarchy. Product permissions remain compartment-scoped unless their tenancy-wide checkbox is selected. Terraform automatically splits the result into policy objects of no more than 50 statements, matching OCI's per-policy limit.
 
