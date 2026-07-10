@@ -56,6 +56,5 @@ By default, generated policies use readable identifiers: `dynamic-group '<domain
 - OKE virtual node pools require the OKE cluster OCIDs and Object Storage to be enabled so the BRIE workload-principal policies can be generated.
 - Networking and Vault are separate checkboxes because those resources frequently reside in compartments different from the protected service.
 - The stack enforces Oracle's documented shared-service prerequisites: relevant Compute, database, storage, load balancer, and OKE selections require Networking and/or Vault; MySQL, OKE, and user-defined steps require Object Storage. Compute also receives volume and networking permissions in its selected compartments, while the shared-service selectors can add different compartments.
-- Oracle's Full Stack DR page currently shows `update cloud-autonomous-vmclusters`, but `update` is not a valid OCI IAM metaverb. This stack uses `use cloud-autonomous-vmclusters` and `use autonomous-vmclusters`, which Oracle's Database IAM reference maps to the required VM-cluster update permissions for Oracle Public Cloud and Exadata Cloud@Customer.
 
 Policy source: [Oracle Full Stack Disaster Recovery — Resource Principals](https://docs.oracle.com/en-us/iaas/disaster-recovery/doc/resource-principal.html).
