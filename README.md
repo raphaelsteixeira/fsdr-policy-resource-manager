@@ -19,6 +19,20 @@ If a prior stack already created the dynamic group, select **Reuse an existing d
 
 For a manual deployment, select **Code** and then **Download ZIP** in GitHub, or download the [current `main` branch archive](https://github.com/raphaelsteixeira/fsdr-policy-resource-manager/archive/refs/heads/main.zip), and upload that generated archive when creating an OCI Resource Manager stack.
 
+## Resource Manager configuration screens
+
+Select the compartments containing the DR Protection Groups, or enable tenancy-wide scope when every DR Protection Group must be included.
+
+![DR Protection Group compartment selection](./images/image1.png)
+
+Enable only the products and features that Full Stack DR must protect. Product-specific compartment sections are displayed for the selected options.
+
+![Products and features to protect](./images/image2.png)
+
+For each enabled product, select up to three compartments or grant the generated policy at tenancy scope. The following example shows the Object Storage section used for DR execution logs.
+
+![Object Storage compartment selection](./images/image3.png)
+
 ## Required operator permissions
 
 The user who creates the stack and runs its Plan, Apply, or Destroy jobs must belong to an OCI IAM group with the permissions below. A tenancy administrator must create this prerequisite policy in the root compartment before the stack is used. Replace the placeholders with the identity domain and group of the **human operator**, the compartment where the Resource Manager stack will be stored, and the identity domain selected for the new dynamic group.
